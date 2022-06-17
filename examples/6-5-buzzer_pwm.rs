@@ -18,6 +18,7 @@ use wio::hal::pwm::Channel;
 use wio::pac::{CorePeripherals, Peripherals};
 use wio::prelude::*;
 use wio::{entry, Pins};
+use wio_examples::Led;
 
 #[entry]
 fn main() -> ! {
@@ -43,16 +44,25 @@ fn main() -> ! {
         &mut sets.port,
     );
 
+    let mut led = Led::new(sets.user_led, &mut sets.port);
+
     //           ド   レ    ミ   ファ  ソ   ラ   シ   ド
     let freqs = [261, 294, 329, 349, 392, 440, 494, 523];
+    let c4 = Channel::_4;
     loop {
         for freq in freqs.iter() {
-            // TODO: 周期（周波数）を設定する
+            // 周期（周波数）を設定する
+            buzzer.set_period(freq.hz());
 
-            // TODO: デューティ比を50%に設定する
+            // デューティ比を50%に設定する
+            let max_duty = buzzer.get_max_duty();
+            buzzer.set_duty(c4, max_duty / 2);
 
-            // TODO: 1秒鳴らして止める
-
+            // 1秒鳴らして止める
+            buzzer.enable(c4);
+            delay.delay_ms(1000u16);
+            led.toggle();
+            buzzer.disable(c4);
         }
     }
 }

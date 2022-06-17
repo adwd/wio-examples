@@ -15,8 +15,8 @@ use wio_terminal as wio;
 use wio::hal::clock::GenericClockController;
 use wio::hal::delay::Delay;
 use wio::pac::{CorePeripherals, Peripherals};
-use wio::prelude::*;
 use wio::{entry, Pins};
+use wio::{prelude::*, Buzzer};
 
 #[entry]
 fn main() -> ! {
@@ -32,10 +32,13 @@ fn main() -> ! {
     );
     let mut delay = Delay::new(core.SYST, &mut clocks);
     let mut pins = Pins::new(peripherals.PORT);
-    // TODO: ブザーピンを出力に設定する
 
-    // TODO: ブザーを鳴らす
+    // ブザーピンを出力に設定する
+    let mut buzzer = pins.buzzer_ctr.into_push_pull_output(&mut pins.port);
+
+    // ブザーを鳴らす
     loop {
-
+        buzzer.toggle();
+        delay.delay_ms(1u8);
     }
 }

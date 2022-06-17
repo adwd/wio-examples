@@ -14,11 +14,11 @@ use wio_terminal as wio;
 
 use core::fmt::Write;
 use nb;
-use wio::{entry, Pins};
 use wio::hal::clock::GenericClockController;
 use wio::hal::delay::Delay;
 use wio::pac::{CorePeripherals, Peripherals};
 use wio::prelude::*;
+use wio::{entry, Pins};
 
 #[entry]
 fn main() -> ! {
@@ -36,7 +36,13 @@ fn main() -> ! {
     let mut sets = Pins::new(peripherals.PORT).split();
     let mut delay = Delay::new(core.SYST, &mut clocks);
 
-    // TODO: 光センサ読み取り用の ADC とピンとを初期化する
+    // 光センサ読み取り用の ADC とピンとを初期化する
+    let (mut light, mut pd1) = sets.light_sensor.init(
+        peripherals.ADC1,
+        &mut clocks,
+        &mut peripherals.MCLK,
+        &mut sets.port,
+    );
 
     // UARTドライバオブジェクトを初期化する
     let mut serial = sets.uart.init(
@@ -48,7 +54,9 @@ fn main() -> ! {
     );
 
     loop {
-        // TODO: ADC入力を1秒に1回取得して、UARTに出力する
-
+        // ADC入力を1秒に1回取得して、UARTに出力する
+        let value: u16 = nb::block!(light.read(&mut pd1)).unwrap();
+        writeln!(&mut serial, "light sensor value: {}", value).unwrap();
+        delay.delay_ms(1000u16);
     }
 }
